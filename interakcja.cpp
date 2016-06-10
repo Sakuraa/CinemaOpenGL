@@ -40,25 +40,25 @@ void KlawiszKlawiaturyWcisniety (GLubyte key, int x, int y)
 	
 	switch (key) 
 	{
-		case 'e':    
+		/*case 'e':    
 			glEnable(GL_FOG);
 		break;
 		case 'd':    
 			glDisable(GL_FOG);
 		break;
-
+		*/
 		case '1':    //50x100x50
 			iloscKrzesel = 65;
 		break;
-		case '2':    //
-			iloscKrzesel = 203;
+		case '2':    //25x50x25
+			iloscKrzesel = 70;
 		break;
 
 		case '3':    
-			iloscKrzesel = 100;
+			iloscKrzesel = 30;
 		break;
 		case '4':    
-			iloscKrzesel = 120;
+			iloscKrzesel = 60;
 		break;
 		
 	

@@ -12,6 +12,7 @@
 #include <direct.h>
 #include <GL/glu.h>
 #include "glaux.h"
+#include "AntTweakBar.h"
 
 //#include <GL/glaux.h>
 //#define GLUTCHECKLOOP
@@ -21,6 +22,9 @@ int oknoSzerkosc=800;
 int oknoWysokosc=600;
 bool oknoFullScreen = false;
 GLint oknoLewe = 1, oknoPrawe = 2;      // id okien stereo 
+
+										
+TwBar *bar;								// panel 
 
 // Opcje projekcji stereo
 int stereoTryb = 0;
@@ -127,12 +131,14 @@ void SzablonRuchKursoraMyszy (int x, int y)
 	kameraPredkoscObrotu = -(pozycjaMyszyX - x) * 0.001;
 	if (kameraPrzemieszczanie)
 	{
-		kameraPredkosc = (pozycjaMyszyY - y) * 0.001;
+		kameraPredkosc = (pozycjaMyszyY - y) * 0.02;
 		kameraPredkoscPunktY = 0;
 	} else {
-		kameraPredkoscPunktY = (pozycjaMyszyY - y) * 0.001;
+		kameraPredkoscPunktY = (pozycjaMyszyY - y) * 0.06;
 		kameraPredkosc = 0;
 	}
+
+	TwEventMouseMotionGLUT(x, y);
 }
 
 void SzablonKlawiszKlawiaturyWcisniety (GLubyte key, int x, int y)
@@ -146,6 +152,14 @@ void SzablonKlawiszKlawiaturyWcisniety (GLubyte key, int x, int y)
       break;
 
    }
+   TwEventKeyboardGLUT(key, x, y);
+
+}
+
+void SzablonKlawiszSpecjalnyWcisniety(GLubyte key, int x, int y)
+{
+	/***************************** SZABLON ***********************/
+	TwEventSpecialGLUT(key, x, y);
 
 }
 
@@ -220,22 +234,8 @@ void windowInit()
 	glLightf(GL_LIGHT1,GL_SPOT_EXPONENT,50.0); //wygladzenie
 	glLightfv(GL_LIGHT1,GL_SPOT_DIRECTION,spotDirectionLight1);
 	
-	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT1); //swiatlo sceny
 	
-	
-	/******************************************************/
-
-	/*******************MGLA**************************/
-
-/*	float fogColor[4]= {0.6f, 0.6f, 0.6f, 0.1f};
-	glFogi(GL_FOG_MODE,GL_EXP2); // [GL_EXP, GL_EXP2, GL_LINEAR ]
-	glFogfv(GL_FOG_COLOR, fogColor); 
-	glFogf(GL_FOG_DENSITY, 0.02f); 
-	glFogf(GL_FOG_START, 0.0f); 
-	glFogf(GL_FOG_END, 200.0f); 
-	glEnable(GL_FOG);  
-	*/
-
 }
 
 void rozmiar (int width, int height)
@@ -252,6 +252,9 @@ void rozmiar (int width, int height)
     glLoadIdentity(); 
     gluPerspective(45.0f,(GLfloat)oknoSzerkosc/(GLfloat)oknoWysokosc,1.0f,1000.0f);
     glMatrixMode(GL_MODELVIEW);
+
+
+	TwWindowSize(width, height);
 }
 
 void rozmiarLewe (int width, int height)
@@ -376,7 +379,7 @@ void rysujRamke(bool prawa)
 
 	#define _RYSOWANIE
 	#include "rysowanie.cpp"	// rysowanie 
-
+	TwDraw();
 	glFlush(); 
     glPopMatrix();
 }
@@ -493,9 +496,29 @@ int main(int argc, char **argv)
 		resetKamery();
 		//srand( (unsigned)time( NULL ) ); // generator liczb losowych
 	    ladujModele();
-		aktywujSpecjalneRenderowanieModelu("woda",1);
-		aktywujSpecjalneRenderowanieModelu("most",2);
+		
 		if (oknoFullScreen && stereoTryb != 2) glutFullScreen();
-		glutMainLoop();        
+		// konfiguracja
+
+		TwInit(TW_OPENGL, NULL);
+
+		glutPassiveMotionFunc((GLUTmousemotionfun)TwEventMouseMotionGLUT);
+		TwGLUTModifiersFunc(glutGetModifiers);
+
+		bar = TwNewBar("P.A.N.E.L");
+		TwAddVarRO(bar, "CameraX", TW_TYPE_DOUBLE, &kameraX,
+			"step=0.3 keyIncr=d keyDecr=a help='Przemieszczanie kamery' group='Kamera'");
+		TwAddVarRO(bar, "CameraZ", TW_TYPE_DOUBLE, &kameraZ,
+			"step=0.3 keyIncr=s keyDecr=w help='Przemieszczanie kamery' group='Kamera'");
+		TwAddVarRW(bar, "CameraKat", TW_TYPE_DOUBLE, &kameraKat,
+			"min=-1 max=1 step=0.01 keyIncr=e keyDecr=q help='Obrot' group='Kamera'");
+		TwAddVarRW(bar, "CinemaHallType", TW_TYPE_INT8, &iloscKrzesel,
+			"min=1 max=4 step=1 keyIncr=p keyDecr=m help='Obrot' group='Kamera'");
+
+		TwAddSeparator(bar, "Stereo", "Stereo");
+
+		glutMainLoop();
+
+		TwTerminate();
 	return(0);    
 }
